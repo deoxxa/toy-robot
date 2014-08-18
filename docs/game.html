@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>game.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="game.html">
+                game.js
+              </a>
+            
+              
+              <a class="source" href="index.html">
+                index.js
+              </a>
+            
+              
+              <a class="source" href="rdl.html">
+                rdl.js
+              </a>
+            
+              
+              <a class="source" href="robot.html">
+                robot.js
+              </a>
+            
+              
+              <a class="source" href="ui.html">
+                ui.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>game.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> Robot = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./robot"</span>);
+
+<span class="hljs-keyword">var</span> Game = <span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Game</span><span class="hljs-params">(options)</span> </span>{
+  options = options || {};
+
+  <span class="hljs-keyword">var</span> width = <span class="hljs-number">5</span>,
+      height = <span class="hljs-number">5</span>;
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> options.width === <span class="hljs-string">"string"</span>) {
+    width = <span class="hljs-built_in">parseInt</span>(options.width, <span class="hljs-number">10</span>);
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> options.width === <span class="hljs-string">"number"</span>) {
+    width = options.width;
+  }
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> options.height === <span class="hljs-string">"string"</span>) {
+    height = <span class="hljs-built_in">parseInt</span>(options.height, <span class="hljs-number">10</span>);
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> options.height === <span class="hljs-string">"number"</span>) {
+    height = options.height;
+  }
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> width !== <span class="hljs-string">"number"</span> || <span class="hljs-keyword">typeof</span> height !== <span class="hljs-string">"number"</span> || <span class="hljs-built_in">Number</span>.isNaN(width) || <span class="hljs-built_in">Number</span>.isNaN(height)) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"invalid width/height type(s)"</span>);
+  }
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Math</span>.round(width) !== width || <span class="hljs-built_in">Math</span>.round(height) !== height || width &lt; <span class="hljs-number">1</span> || height &lt; <span class="hljs-number">1</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"invalid width/height value(s)"</span>);
+  }
+
+  <span class="hljs-keyword">this</span>.width = width;
+  <span class="hljs-keyword">this</span>.height = height;
+
+  <span class="hljs-keyword">this</span>.robots = [];
+};
+
+Game.prototype.addRobot = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addRobot</span><span class="hljs-params">(robot)</span> </span>{
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> robot.place !== <span class="hljs-string">"function"</span> || <span class="hljs-keyword">typeof</span> robot.move !== <span class="hljs-string">"function"</span> || <span class="hljs-keyword">typeof</span> robot.left !== <span class="hljs-string">"function"</span> || <span class="hljs-keyword">typeof</span> robot.right !== <span class="hljs-string">"function"</span> || <span class="hljs-keyword">typeof</span> robot.report !== <span class="hljs-string">"function"</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"robot doesn't support the methods required"</span>);
+  }
+
+  <span class="hljs-keyword">this</span>.robots.push(robot);
+};
+
+Game.prototype.validPosition = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">validPosition</span><span class="hljs-params">(position)</span> </span>{
+  <span class="hljs-keyword">return</span> position.x &gt;= <span class="hljs-number">0</span> &amp;&amp; position.y &gt;= <span class="hljs-number">0</span> &amp;&amp; position.x &lt; <span class="hljs-keyword">this</span>.width &amp;&amp; position.y &lt; <span class="hljs-keyword">this</span>.height;
+};</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

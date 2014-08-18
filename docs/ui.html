@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>ui.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="game.html">
+                game.js
+              </a>
+            
+              
+              <a class="source" href="index.html">
+                index.js
+              </a>
+            
+              
+              <a class="source" href="rdl.html">
+                rdl.js
+              </a>
+            
+              
+              <a class="source" href="robot.html">
+                robot.js
+              </a>
+            
+              
+              <a class="source" href="ui.html">
+                ui.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>ui.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> events = <span class="hljs-built_in">require</span>(<span class="hljs-string">"events"</span>),
+    readline = <span class="hljs-built_in">require</span>(<span class="hljs-string">"readline"</span>),
+    util = <span class="hljs-built_in">require</span>(<span class="hljs-string">"util"</span>),
+    wordwrap = <span class="hljs-built_in">require</span>(<span class="hljs-string">"wordwrap"</span>);
+
+<span class="hljs-keyword">var</span> RDL = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./rdl"</span>);
+
+<span class="hljs-keyword">var</span> COMMANDS = {
+  PLACE: {
+    syntax: <span class="hljs-string">"PLACE X,Y,DIRECTION"</span>,
+    help: <span class="hljs-string">"PLACE WILL PUT THE ROBOT ON THE TABLE IN POSITION X,Y AND FACING NORTH, SOUTH, EAST OR WEST"</span>,
+  },
+  MOVE: {
+    help: <span class="hljs-string">"MOVE WILL MOVE THE ROBOT ONE UNIT FORWARD IN THE DIRECTION IT IS CURRENTLY FACING"</span>,
+  },
+  LEFT: {
+    help: <span class="hljs-string">"LEFT WILL ROTATE THE ROBOT 90 DEGREES COUNTERCLOCKWISE WITHOUT CHANGING THE POSITION OF THE ROBOT"</span>,
+  },
+  RIGHT: {
+    help: <span class="hljs-string">"RIGHT WILL ROTATE THE ROBOT 90 DEGREES CLOCKWISE WITHOUT CHANGING THE POSITION OF THE ROBOT"</span>,
+  },
+  REPORT: {
+    help: <span class="hljs-string">"REPORT WILL ANNOUNCE THE X, Y, AND DIRECTION OF THE ROBOT"</span>,
+  },
+  HELP: {
+    syntax: <span class="hljs-string">"HELP &lt;COMMAND&gt;"</span>,
+    help: <span class="hljs-string">"WHAT ARE YOU, 5 YEARS OLD? \"HELP HELP?\" \"NO NO.\""</span>,
+  },
+};
+
+<span class="hljs-keyword">var</span> UI = <span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">UI</span><span class="hljs-params">(options)</span> </span>{
+  events.EventEmitter.call(<span class="hljs-keyword">this</span>);
+
+  options = options || {};
+
+  <span class="hljs-keyword">this</span>.game = options.game;
+  <span class="hljs-keyword">this</span>.robot = options.robot;
+  <span class="hljs-keyword">this</span>.input = options.input;
+  <span class="hljs-keyword">this</span>.output = options.output;
+
+  <span class="hljs-keyword">this</span>.rl = readline.createInterface({
+    input: <span class="hljs-keyword">this</span>.input,
+    output: <span class="hljs-keyword">this</span>.output,
+  });
+
+  <span class="hljs-keyword">this</span>.rl.on(<span class="hljs-string">"line"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onLine</span><span class="hljs-params">(line)</span> </span>{
+    <span class="hljs-keyword">try</span> {
+      cmd = RDL.parse(line);
+    } <span class="hljs-keyword">catch</span> (e) {
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.commandError(e);
+    }
+
+    <span class="hljs-keyword">switch</span> (cmd.type) {
+      <span class="hljs-keyword">case</span> <span class="hljs-string">"help"</span>: <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.help(cmd);
+      <span class="hljs-keyword">case</span> <span class="hljs-string">"place"</span>: <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.place(cmd);
+      <span class="hljs-keyword">case</span> <span class="hljs-string">"move"</span>: <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.move(cmd);
+      <span class="hljs-keyword">case</span> <span class="hljs-string">"left"</span>: <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.left(cmd);
+      <span class="hljs-keyword">case</span> <span class="hljs-string">"right"</span>: <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.right(cmd);
+      <span class="hljs-keyword">case</span> <span class="hljs-string">"report"</span>: <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.report(cmd);
+      <span class="hljs-keyword">default</span>: <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.unknownCommand(cmd);
+    }
+  }.bind(<span class="hljs-keyword">this</span>));
+};
+UI.prototype = <span class="hljs-built_in">Object</span>.create(events.EventEmitter.prototype, {constructor: {value: UI}});
+
+UI.prototype.send = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">send</span><span class="hljs-params">(data)</span> </span>{
+  <span class="hljs-keyword">this</span>.output.write(data);
+};
+
+UI.prototype.line = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">line</span><span class="hljs-params">(line)</span> </span>{
+  <span class="hljs-keyword">this</span>.send((line || <span class="hljs-string">""</span>) + <span class="hljs-string">"\n"</span>);
+};
+
+UI.prototype.init = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">this</span>.line();
+  <span class="hljs-keyword">this</span>.line(<span class="hljs-string">"[!] WELCOME TO ROBOT SIMULATOR 5000"</span>);
+  <span class="hljs-keyword">this</span>.line();
+  <span class="hljs-keyword">this</span>.sendCommandList();
+  <span class="hljs-keyword">this</span>.line();
+
+  <span class="hljs-keyword">this</span>.rl.prompt();
+};
+
+UI.prototype.sendCommandList = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">sendCommandList</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">this</span>.line(<span class="hljs-string">"SUPPORTED COMMANDS ARE:"</span>);
+  <span class="hljs-keyword">this</span>.line();
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> k <span class="hljs-keyword">in</span> COMMANDS) {
+    <span class="hljs-keyword">this</span>.line(<span class="hljs-string">"  "</span> + (COMMANDS[k].syntax || k) + <span class="hljs-string">""</span>);
+  }
+};
+
+UI.prototype.sendError = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">error</span><span class="hljs-params">(err, message)</span> </span>{
+  <span class="hljs-keyword">this</span>.line(<span class="hljs-string">"[!] "</span> + (message || <span class="hljs-string">"ERROR"</span>) + <span class="hljs-string">": "</span> + err.message.toUpperCase() + <span class="hljs-string">""</span>);
+};
+
+UI.prototype.commandError = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">commandError</span><span class="hljs-params">(err)</span> </span>{
+  <span class="hljs-keyword">this</span>.line();
+  <span class="hljs-keyword">this</span>.sendError(err, <span class="hljs-string">"ERROR PARSING COMMAND"</span>);
+  <span class="hljs-keyword">this</span>.line();
+  <span class="hljs-keyword">this</span>.sendCommandList();
+  <span class="hljs-keyword">this</span>.line();
+
+  <span class="hljs-keyword">this</span>.rl.prompt();
+};
+
+UI.prototype.error = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">error</span><span class="hljs-params">(err, message)</span> </span>{
+  <span class="hljs-keyword">this</span>.line();
+  <span class="hljs-keyword">this</span>.sendError(err, message);
+  <span class="hljs-keyword">this</span>.line();
+
+  <span class="hljs-keyword">this</span>.rl.prompt();
+};
+
+UI.prototype.unknownCommand = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">unknownCommand</span><span class="hljs-params">(cmd)</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.error(<span class="hljs-built_in">Error</span>(<span class="hljs-string">"unrecognised command"</span>), <span class="hljs-string">"UNKNOWN COMMAND `"</span> + cmd.type.toUpperCase() + <span class="hljs-string">"`"</span>);
+};
+
+UI.prototype.help = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">help</span><span class="hljs-params">(cmd)</span> </span>{
+  <span class="hljs-keyword">this</span>.line();
+
+  <span class="hljs-keyword">if</span> (cmd.command === <span class="hljs-literal">null</span>) {
+    <span class="hljs-keyword">this</span>.line(<span class="hljs-string">"[!] SILLY HUMAN, SPECIFY WHAT YOU WANT HELP WITH"</span>);
+    <span class="hljs-keyword">this</span>.line();
+    <span class="hljs-keyword">this</span>.sendCommandList();
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (COMMANDS[cmd.command] &amp;&amp; COMMANDS[cmd.command].help) {
+    <span class="hljs-keyword">this</span>.line(<span class="hljs-string">"[!] HELP FOR COMMAND `"</span> + cmd.command + <span class="hljs-string">"`"</span>);
+    <span class="hljs-keyword">this</span>.line();
+    <span class="hljs-keyword">this</span>.line(<span class="hljs-string">"SYNTAX: "</span> + (COMMANDS[cmd.command].syntax || cmd.command) + <span class="hljs-string">""</span>);
+    <span class="hljs-keyword">this</span>.line();
+    <span class="hljs-keyword">this</span>.line(wordwrap(<span class="hljs-number">80</span>)(COMMANDS[cmd.command].help) + <span class="hljs-string">""</span>);
+  } <span class="hljs-keyword">else</span> {
+    <span class="hljs-keyword">this</span>.line(<span class="hljs-string">"[!] COMMAND `"</span> + cmd.command + <span class="hljs-string">"` DOESN'T EXIST"</span>);
+  }
+
+  <span class="hljs-keyword">this</span>.line();
+
+  <span class="hljs-keyword">this</span>.rl.prompt();
+};
+
+UI.prototype.place = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">place</span><span class="hljs-params">(cmd)</span> </span>{
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.game.validPosition(<span class="hljs-keyword">this</span>.robot.place(cmd.x, cmd.y, cmd.direction, <span class="hljs-literal">true</span>))) {
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.error(<span class="hljs-built_in">Error</span>(<span class="hljs-string">"place would result in invalid position"</span>));
+    }
+
+    <span class="hljs-keyword">this</span>.robot.place(cmd.x, cmd.y, cmd.direction);
+  } <span class="hljs-keyword">catch</span> (e) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.error(e);
+  }
+
+  <span class="hljs-keyword">this</span>.report();
+};
+
+UI.prototype.move = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">move</span><span class="hljs-params">(cmd)</span> </span>{
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.game.validPosition(<span class="hljs-keyword">this</span>.robot.move(<span class="hljs-literal">true</span>))) {
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.error(<span class="hljs-built_in">Error</span>(<span class="hljs-string">"move would result in invalid position"</span>));
+    }
+
+    <span class="hljs-keyword">this</span>.robot.move();
+  } <span class="hljs-keyword">catch</span> (e) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.error(e);
+  }
+
+  <span class="hljs-keyword">this</span>.report();
+};
+
+UI.prototype.left = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">left</span><span class="hljs-params">(cmd)</span> </span>{
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">this</span>.robot.left();
+  } <span class="hljs-keyword">catch</span> (e) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.error(e);
+  }
+
+  <span class="hljs-keyword">this</span>.report();
+};
+
+UI.prototype.right = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">right</span><span class="hljs-params">(cmd)</span> </span>{
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">this</span>.robot.right();
+  } <span class="hljs-keyword">catch</span> (e) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.error(e);
+  }
+
+  <span class="hljs-keyword">this</span>.report();
+};
+
+UI.prototype.report = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">report</span><span class="hljs-params">(cmd)</span> </span>{
+  <span class="hljs-keyword">var</span> position = <span class="hljs-keyword">this</span>.robot.report();
+
+  <span class="hljs-keyword">this</span>.line();
+  <span class="hljs-keyword">this</span>.line(util.format(<span class="hljs-string">"X: %s, Y: %s, FACING: %s"</span>, position.x, position.y, position.direction));
+  <span class="hljs-keyword">this</span>.line();
+
+  <span class="hljs-keyword">this</span>.rl.prompt();
+};</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
