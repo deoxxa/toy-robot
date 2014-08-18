@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+
+var net = require("net");
+
+var Game = require("../lib/game"),
+    Robot = require("../lib/robot"),
+    UI = require("../lib/ui");
+
+net.createServer(function(socket) {
+  console.log("client connected");
+
+  socket.on("end", function() {
+    console.log("client disconnected");
+  });
+
+  var game = new Game({
+    width: 5,
+    height: 5,
+  });
+
+  var robot = new Robot();
+
+  game.addRobot(robot);
+
+  var ui = new UI({
+    game: game,
+    robot: robot,
+    input: socket,
+    output: socket,
+  });
+
+  ui.init();
+}).listen(process.env.PORT || 3000, function() {
+  console.log("listening");
+});
