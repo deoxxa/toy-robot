@@ -1,0 +1,60 @@
+//
+// Robot Direction Language
+// ------------------------
+//
+// The following commands are supported:
+//
+// ```
+// PLACE X,Y,DIRECTION
+// MOVE
+// LEFT
+// RIGHT
+// REPORT
+// HELP <COMMAND>
+// ```
+//
+
+start = cmd_place / cmd_move / cmd_left / cmd_right / cmd_report / cmd_help
+
+_ = [ \t]
+__ = _*
+
+cmd_place = "PLACE" _+ x:([0-9]+) __ "," __ y:([0-9]+) __ "," __ direction:( "NORTH" / "SOUTH" / "EAST" / "WEST" ) {
+  return {
+    type: "place",
+    x: parseInt(x.join(""), 10),
+    y: parseInt(y.join(""), 10),
+    direction: direction,
+  }
+}
+
+cmd_move = "MOVE" {
+  return {
+    type: "move",
+  }  
+}
+
+cmd_left = "LEFT" {
+  return {
+    type: "left",
+  }  
+}
+
+cmd_right = "RIGHT" {
+  return {
+    type: "right",
+  }  
+}
+
+cmd_report = "REPORT" {
+  return {
+    type: "report",
+  }  
+}
+
+cmd_help = "HELP" command:(__ command:([A-Z]+))? {
+  return {
+    type: "help",
+    command: command ? command[1].join("") : null,
+  }
+}

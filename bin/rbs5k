@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+var Game = require("../lib/game"),
+    Robot = require("../lib/robot"),
+    UI = require("../lib/ui");
+
+var game = new Game({
+  width: 5,
+  height: 5,
+});
+
+var robot = new Robot();
+
+game.addRobot(robot);
+
+var ui = new UI({
+  game: game,
+  robot: robot,
+  input: process.stdin,
+  output: process.stdout,
+});
+
+ui.init();
