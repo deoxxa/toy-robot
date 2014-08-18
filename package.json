@@ -4,6 +4,7 @@
   "description": "a simulation of a toy robot moving on a square tabletop",
   "main": "index.js",
   "scripts": {
+    "start": "./bin/rbs5k",
     "test": "mocha -R tap",
     "coverage": "rm -rf lib-cov && shovel lib lib-cov && mocha -R steamshovel",
     "docs": "docco lib/*"
