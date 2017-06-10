@@ -90,7 +90,7 @@ Testing
 -------
 
 The codebase is well-tested, as evidenced by the `test` directory. I'm using
-[mocha](https://visionmedia.github.io/mocha/) and [chai](http://chaijs.com/) for
+[mocha](http://mochajs.org/) and [chai](http://chaijs.com/) for
 the unit tests, [stream-expect](https://github.com/rsolomo/node-stream-expect)
 for the integration tests, and [SteamShovel](https://github.com/cgiffard/SteamShovel)
 for code coverage. SteamShovel reports a coverage rate of about 50%, but much of
